@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Register — FocusFlow{% endblock %}
+{% block content %}
+<div class="card auth">
+    <h1>Create your account</h1>
+    <p class="small">Save your tasks and Pomodoro sessions across devices.</p>
+    <form method="post">
+        <label>Email</label>
+        <input type="email" name="email" required autocomplete="email">
+        <br><br>
+        <label>Password</label>
+        <input type="password" name="password" minlength="6" required autocomplete="new-password">
+        <button class="primary" type="submit">Register</button>
+    </form>
+    <p class="small" style="margin-top:18px;">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
+</div>
+{% endblock %}

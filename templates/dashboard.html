@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}FocusFlow Dashboard{% endblock %}
+{% block content %}
+<div style="margin-bottom:22px;">
+    <h1>FocusFlow Pomodoro Timer</h1>
+    <p class="small">Work in focused intervals, take intentional breaks, and keep your tasks organized.</p>
+</div>
+
+<div class="grid">
+    <section>
+        <div class="card timer">
+            <div class="mode" id="mode">FOCUS SESSION</div>
+            <div id="display">25:00</div>
+            <div class="controls">
+                <button class="primary" id="startBtn">Start</button>
+                <button class="secondary" id="pauseBtn">Pause</button>
+                <button class="secondary" id="resetBtn">Reset</button>
+            </div>
+            <br>
+            <div class="controls">
+                <button class="secondary" onclick="setPreset(25)">25 min</button>
+                <button class="secondary" onclick="setPreset(50)">50 min</button>
+                <button class="secondary" onclick="setPreset(5)">5 min break</button>
+            </div>
+            <p class="small" id="timerStatus">Choose a task, then start focusing.</p>
+        </div>
+
+        <div class="card">
+            <h2>Tasks</h2>
+            <form class="task-form" method="post" action="{{ url_for('add_task') }}">
+                <input name="title" placeholder="What do you need to finish?" required>
+                <select name="priority">
+                    <option>Normal</option>
+                    <option>High</option>
+                    <option>Low</option>
+                </select>
+                <button class="primary" type="submit">Add</button>
+            </form>
+
+            {% if tasks %}
+                {% for task in tasks %}
+                <div class="task">
+                    <form method="post" action="{{ url_for('toggle_task', task_id=task.id) }}">
+                        <button class="secondary" type="submit">{{ "✓" if task.completed else "○" }}</button>
+                    </form>
+                    <span class="task-title {{ 'done' if task.completed else '' }}">{{ task.title }}</span>
+                    <span class="pill">{{ task.priority }}</span>
+                    <form method="post" action="{{ url_for('delete_task', task_id=task.id) }}">
+                        <button class="danger" type="submit">Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="small" style="margin-top:20px;">No tasks yet. Add your first task above.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <aside>
+        <div class="card">
+            <h2>Your progress</h2>
+            <div class="stats">
+                <div class="stat"><strong>{{ tasks|length }}</strong>Tasks</div>
+                <div class="stat"><strong>{{ completed_count }}</strong>Done</div>
+                <div class="stat"><strong>{{ sessions|length }}</strong>Sessions</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Pomodoro history</h2>
+            {% if sessions %}
+                <div class="history">
+                {% for item in sessions %}
+                    <p>
+                        <strong>{{ item.duration_minutes }} min</strong>
+                        — completed
+                        {% if item.completed_at %}
+                            {{ item.completed_at[:16].replace('T', ' ') }}
+                        {% endif %}
+                    </p>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p class="small">Completed focus sessions will appear here.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>How to use</h2>
+            <ol class="small">
+                <li>Add the task you want to work on.</li>
+                <li>Choose a timer preset.</li>
+                <li>Press Start and focus.</li>
+                <li>When the timer reaches zero, the session is saved.</li>
+                <li>Take a break and repeat.</li>
+            </ol>
+        </div>
+    </aside>
+</div>
+
+<script>
+let totalSeconds = 25 * 60;
+let remainingSeconds = totalSeconds;
+let timerId = null;
+let running = false;
+let currentMinutes = 25;
+
+const display = document.getElementById("display");
+const mode = document.getElementById("mode");
+const statusText = document.getElementById("timerStatus");
+
+function render() {
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = remainingSeconds % 60;
+    display.textContent =
+        String(minutes).padStart(2, "0") + ":" +
+        String(seconds).padStart(2, "0");
+}
+
+function setPreset(minutes) {
+    pauseTimer();
+    currentMinutes = minutes;
+    totalSeconds = minutes * 60;
+    remainingSeconds = totalSeconds;
+    mode.textContent = minutes <= 5 ? "SHORT BREAK" : "FOCUS SESSION";
+    statusText.textContent = minutes <= 5
+        ? "Recharge before your next focus session."
+        : "Ready when you are.";
+    render();
+}
+
+function startTimer() {
+    if (running) return;
+    running = true;
+    statusText.textContent = "Timer running — stay focused!";
+    timerId = setInterval(() => {
+        remainingSeconds--;
+        render();
+
+        if (remainingSeconds <= 0) {
+            pauseTimer();
+            finishSession();
+        }
+    }, 1000);
+}
+
+function pauseTimer() {
+    running = false;
+    if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+    }
+    statusText.textContent = "Timer paused.";
+}
+
+function resetTimer() {
+    pauseTimer();
+    remainingSeconds = totalSeconds;
+    statusText.textContent = "Timer reset.";
+    render();
+}
+
+async function finishSession() {
+    remainingSeconds = 0;
+    render();
+    statusText.textContent = "Session complete! Great work.";
+
+    // Save the completed focus session in Supabase through Flask.
+    if (currentMinutes > 5) {
+        try {
+            const response = await fetch("{{ url_for('complete_pomodoro') }}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({minutes: currentMinutes})
+            });
+            if (response.ok) {
+                setTimeout(() => window.location.reload(), 800);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
+
+document.getElementById("startBtn").addEventListener("click", startTimer);
+document.getElementById("pauseBtn").addEventListener("click", pauseTimer);
+document.getElementById("resetBtn").addEventListener("click", resetTimer);
+render();
+</script>
+{% endblock %}
