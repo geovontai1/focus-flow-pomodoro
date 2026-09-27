@@ -2,6 +2,8 @@
 
 FocusFlow is a simple web application built for ED2: Build Software with AI. It combines a Pomodoro focus timer with a task manager, user authentication, a cloud database, and session history.
 
+Website: https://focus-flow-pomodoro-9j9o.onrender.com/dashboard 
+
 ## Features
 
 - User registration and login
@@ -46,7 +48,6 @@ pomodoro_timer_ed2/
     ├── register.html
     └── dashboard.html
 ```
-
 ## Local setup
 
 1. Install Python 3.13.
@@ -77,9 +78,7 @@ python app.py
 
 10. Open the local address shown by Flask.
 
-## Important security note
 
-The `SUPABASE_SERVICE_ROLE_KEY` is a server-only secret. It must never be placed in HTML/JavaScript or committed to GitHub. Store it as an environment variable in local development and in Render's environment settings.
 
 ## Deployment
 
@@ -131,21 +130,7 @@ Suggested commits:
 ### 7. Deploy
 Deploy the Flask application as a Render Web Service.
 
-### 8. Demo video
-Record 3–5 minutes showing:
-1. The deployed URL
-2. Registration
-3. Login
-4. Adding a task
-5. Starting/pausing/resetting the timer
-6. Completing a Pomodoro
-7. Refreshing to show saved history
-8. Toggling and deleting a task
-9. Briefly explaining the code structure and Supabase database
 
 ### 9. README
 This README documents the app, technologies, setup instructions, deployment, and demo checklist.
 
-## AI disclosure
-
-AI tools were used as development assistance for planning, code generation, debugging, and documentation. The final application was reviewed and tested by the student.
