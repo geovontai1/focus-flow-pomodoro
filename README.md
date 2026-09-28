@@ -3,6 +3,7 @@
 FocusFlow is a simple web application built for ED2: Build Software with AI. It combines a Pomodoro focus timer with a task manager, user authentication, a cloud database, and session history.
 
 Website: https://focus-flow-pomodoro-9j9o.onrender.com/dashboard 
+Video: https://youtu.be/8BVQDPL9NMs 
 
 ## Features
 
